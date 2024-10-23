@@ -6,8 +6,6 @@
  * Purpose:
  *   Hide and show navigation links
  *
- * Important Notes:
- *   - Any important notes
  */
 import { create } from "zustand";
 
