@@ -1,0 +1,19 @@
+{
+	"Function with Jira Ticket": {
+		"prefix": "jira",
+		"body": [
+			"/**",
+			" * Author: ${1:Your Name}",
+			" * Created Date: ${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE}",
+			" * Jira Ticket: ${2:QTS-1234}",			
+			" * ",
+			" * Purpose: ",
+			" *   ${4:Description of what this function does}",
+			" * ",
+			" * Important Notes: ",
+			" *   - ${5:Any important notes}",
+			" */"
+		],
+		"description": "Template for function documentation with Jira ticket"
+	}
+}
