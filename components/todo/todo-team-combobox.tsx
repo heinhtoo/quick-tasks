@@ -19,10 +19,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useQuery } from "react-query";
-import { TaskList } from "@/types/taskList";
 import { useUserStore } from "../stores/user-store";
+import { TeamList } from "@/types/teamList";
 
-export function TodoListComboBox({
+export function TodoTeamComboBox({
   value,
   setValue,
 }: {
@@ -33,15 +33,18 @@ export function TodoListComboBox({
     state.username,
     state.setUsername,
   ]);
-  const { data: lists } = useQuery<TaskList[]>(["taskLists", username], () => {
+  const { data: lists } = useQuery<TeamList[]>(["teamLists", username], () => {
     return fetch(
-      "/api/taskLists?username=" + encodeURIComponent(username)
-    ).then((res) => {
+      "/api/teamLists?username=" + encodeURIComponent(username)
+    ).then(async (res) => {
       if (res.status === 401) {
         setUsername("");
       }
       if (!res.ok) {
-        throw new Error("Network response was not ok");
+        const errorResponse = await res.json();
+        throw new Error(
+          errorResponse.error || "An error occcurred while fetching."
+        );
       }
       const json = res.json();
       return json;

@@ -1,10 +1,10 @@
 /**
  * Author: Hein Htoo
  * Created Date: 2024-10-24
- * Jira Ticket: QTS-15
+ * Jira Ticket: QTS-9
  *
  * Purpose:
- *   Team modify form
+ *   Todo list form
  *
  */
 "use client";
@@ -12,7 +12,7 @@
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -21,39 +21,66 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Icons } from "../ui/icons";
 import { useUserStore } from "../stores/user-store";
-import { TeamListSchema } from "@/schema/TaskSchema";
+import { TaskListSchema } from "@/schema/TaskSchema";
 
-interface TodoTeamFormProps extends React.HTMLAttributes<HTMLDivElement> {
+interface TodoListFormProps extends React.HTMLAttributes<HTMLDivElement> {
   submitFn: () => void;
+  list: z.infer<typeof TaskListSchema> | null;
+  updateId: number | null;
 }
 
-export function TodoTeamForm({
+export function TodoListForm({
   submitFn,
+  list,
+  updateId,
   className,
   ...props
-}: TodoTeamFormProps) {
+}: TodoListFormProps) {
   const [isLoading, startTransition] = useTransition();
   const [username] = useUserStore((state) => [state.username]);
 
-  const form = useForm<z.infer<typeof TeamListSchema>>({
-    resolver: zodResolver(TeamListSchema),
+  const form = useForm<z.infer<typeof TaskListSchema>>({
+    resolver: zodResolver(TaskListSchema),
     defaultValues: {
       name: "",
       username,
     },
   });
 
-  async function onSubmit(data: z.infer<typeof TeamListSchema>) {
+  useEffect(() => {
+    if (list) {
+      form.reset(list);
+    } else {
+      form.reset({
+        name: "",
+        username,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list, username]);
+
+  async function onSubmit(data: z.infer<typeof TaskListSchema>) {
     startTransition(async () => {
       try {
-        fetch("/api/teamLists", {
-          method: "POST",
-          body: JSON.stringify(data),
-        }).then((response) => {
-          if (response.status === 201) {
-            submitFn();
-          }
-        });
+        if (updateId) {
+          fetch("/api/taskLists?id=" + updateId, {
+            method: "PUT",
+            body: JSON.stringify(data),
+          }).then((response) => {
+            if (response.ok) {
+              submitFn();
+            }
+          });
+        } else {
+          fetch("/api/taskLists", {
+            method: "POST",
+            body: JSON.stringify(data),
+          }).then((response) => {
+            if (response.status === 201) {
+              submitFn();
+            }
+          });
+        }
       } catch (error) {
         toast({
           variant: "destructive",

@@ -20,7 +20,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
-import { TodoListForm } from "./todo-list-form";
+import { TodoListForm } from "../forms/todo-list-form";
 
 function TodoListCreate({ refetch }: { refetch: () => void }) {
   const [isOpen, setOpen] = useState(false);
@@ -70,6 +70,8 @@ function TodoListCreate({ refetch }: { refetch: () => void }) {
         </DrawerHeader>
         <div className="p-5">
           <TodoListForm
+            list={null}
+            updateId={null}
             submitFn={() => {
               setOpen(false);
               refetch();

@@ -1,22 +1,15 @@
 import { createConnection } from "@/lib/mysqldb";
-import redisClient from "@/lib/redis";
 import { UserFormSchema } from "@/schema/UserSchema";
 import { NextResponse } from "next/server";
 
-const cacheKey = "users";
-
 export async function GET() {
-  try {
-    const value = await redisClient.get(cacheKey);
-    if (value) {
-      return NextResponse.json(JSON.parse(value));
-    } else {
-      const connection = await createConnection();
-      const query = "SELECT * FROM Users";
-      const [tasks] = await connection.query(query);
+  const connection = await createConnection();
 
-      return NextResponse.json(tasks);
-    }
+  try {
+    const query = "SELECT id, username FROM Users";
+    const [tasks] = await connection.query(query);
+
+    return NextResponse.json(tasks);
   } catch (err) {
     console.log(err);
     return NextResponse.json(
@@ -27,13 +20,14 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const connection = await createConnection();
+
   try {
     const data = await request.json();
     const formData = UserFormSchema.safeParse(data);
     if (!formData.success) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
-    const connection = await createConnection();
 
     const query = "INSERT IGNORE INTO Users (username) VALUES (?)";
     await connection.execute(query, [formData.data.username]);

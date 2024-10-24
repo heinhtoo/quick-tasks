@@ -10,9 +10,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function PrioritySelect() {
+export function PrioritySelect({
+  value,
+  setValue,
+}: {
+  value: number;
+  setValue: (value: number) => void;
+}) {
   return (
-    <Select>
+    <Select
+      value={value.toString()}
+      onValueChange={(value) => {
+        setValue(parseInt(value));
+      }}
+    >
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder="Priority" />
       </SelectTrigger>

@@ -20,7 +20,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
-import { TodoTeamForm } from "./todo-team-form";
+import { TodoTeamForm } from "../forms/todo-team-form";
 
 function TodoTeamCreate({ refetch }: { refetch: () => void }) {
   const [isOpen, setOpen] = useState(false);
@@ -73,6 +73,8 @@ function TodoTeamCreate({ refetch }: { refetch: () => void }) {
         </DrawerHeader>
         <div className="p-5">
           <TodoTeamForm
+            team={null}
+            updateId={null}
             submitFn={() => {
               setOpen(false);
               refetch();

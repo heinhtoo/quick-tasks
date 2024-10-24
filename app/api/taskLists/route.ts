@@ -11,7 +11,7 @@ import { getCurrentUserId } from "@/lib/databaseHelper";
 import { createConnection } from "@/lib/mysqldb";
 import { TaskListSchema } from "@/schema/TaskSchema";
 import { RowDataPacket } from "mysql2";
-import { revalidatePath } from "next/cache";
+
 import { NextResponse } from "next/server";
 
 // Get tasks lists data
@@ -26,6 +26,8 @@ import { NextResponse } from "next/server";
 // if username is not exists in database, return 401 error.
 
 export async function GET(request: Request) {
+  const connection = await createConnection();
+
   try {
     const url = new URL(request.url);
     const searchParams = new URLSearchParams(url.searchParams);
@@ -41,7 +43,6 @@ export async function GET(request: Request) {
     if (!currentUserId) {
       return NextResponse.json({ error: "Invalid user" }, { status: 401 });
     }
-    const connection = await createConnection();
     const query = `SELECT 
           tl.id AS id,
           tl.name AS name,
@@ -88,6 +89,8 @@ export async function GET(request: Request) {
 // if username is not exists in database, return 401 error.
 
 export async function POST(request: Request) {
+  const connection = await createConnection();
+
   try {
     const data = await request.json();
     const formData = TaskListSchema.safeParse(data);
@@ -101,11 +104,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid user" }, { status: 401 });
     }
 
-    const connection = await createConnection();
-
     const query = "INSERT INTO TaskLists (name, createdByUserId) VALUES (?, ?)";
     await connection.execute(query, [formData.data.name, currentUserId]);
-    revalidatePath("/");
 
     return NextResponse.json({ message: "Created" }, { status: 201 });
   } catch (err) {
@@ -135,15 +135,12 @@ export async function POST(request: Request) {
 // if username is not exists in database, return 401 error.
 
 export async function PUT(request: Request) {
+  const connection = await createConnection();
+
   try {
     const url = new URL(request.url);
     const searchParams = new URLSearchParams(url.searchParams);
-    if (!searchParams.get("username")) {
-      return NextResponse.json(
-        { error: "Invalid parameters" },
-        { status: 400 }
-      );
-    }
+
     const data = await request.json();
     const formData = TaskListSchema.safeParse(data);
     if (!formData.success) {
@@ -156,8 +153,6 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Invalid user" }, { status: 401 });
     }
 
-    const connection = await createConnection();
-
     const query =
       "UPDATE TaskLists SET name=? WHERE id=? AND createdByUserId=?";
     await connection.execute(query, [
@@ -165,9 +160,8 @@ export async function PUT(request: Request) {
       searchParams.get("id"),
       currentUserId,
     ]);
-    revalidatePath("/");
 
-    return NextResponse.json({ message: "Updated" }, { status: 204 });
+    return NextResponse.json({ message: "Updated" }, { status: 200 });
   } catch (err) {
     console.log(err);
     return NextResponse.json(
@@ -190,6 +184,8 @@ export async function PUT(request: Request) {
 // if username is not exists in database, return 401 error.
 
 export async function DELETE(request: Request) {
+  const connection = await createConnection();
+
   try {
     const url = new URL(request.url);
     const searchParams = new URLSearchParams(url.searchParams);
@@ -212,18 +208,17 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Invalid user" }, { status: 401 });
     }
 
-    const connection = await createConnection();
-
     const query = "DELETE FROM TaskLists WHERE id=? AND createdByUserId=?";
     await connection.execute(query, [searchParams.get("id"), currentUserId]);
-    revalidatePath("/");
 
-    return NextResponse.json({ message: "DELETED" }, { status: 204 });
+    return NextResponse.json({ message: "DELETED" }, { status: 200 });
   } catch (err) {
     console.log(err);
     return NextResponse.json(
       { error: (err as Error).message },
       { status: 400 }
     );
+  } finally {
+    await connection.end;
   }
 }

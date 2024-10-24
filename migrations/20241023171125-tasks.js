@@ -42,10 +42,12 @@ exports.up = function (db) {
           id: { type: "int", primaryKey: true, autoIncrement: true },
           name: { type: "varchar", length: 200, notNull: true },
           note: { type: "text" },
+          priority: { type: "int" },
           isComplete: { type: "boolean", defaultValue: false },
           createdByUserId: { type: "int" },
           taskListId: { type: "int" },
           teamId: { type: "int" },
+          orderNo: { type: "int" },
           created_at: {
             type: "timestamp",
             defaultValue: new String("CURRENT_TIMESTAMP"),
