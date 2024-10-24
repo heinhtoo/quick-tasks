@@ -17,9 +17,10 @@ export function PrioritySelect({
   value: number;
   setValue: (value: number) => void;
 }) {
+  console.log(value);
   return (
     <Select
-      value={value.toString()}
+      defaultValue={value.toString()}
       onValueChange={(value) => {
         setValue(parseInt(value));
       }}
