@@ -9,14 +9,14 @@
  */
 import { getCurrentUserId } from "@/lib/databaseHelper";
 import { createConnection } from "@/lib/mysqldb";
-import { TaskListSchema } from "@/schema/TaskSchema";
+import { TeamListSchema } from "@/schema/TaskSchema";
 import { TeamList } from "@/types/teamList";
 import { RowDataPacket } from "mysql2";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
-// Get tasks lists data
-// path: /api/taskLists?username=${username}
+// Get team lists data
+// path: /api/teamLists?username=${username}
 // return schema
 // {
 //    id: number;
@@ -100,13 +100,13 @@ export async function GET(request: Request) {
   }
 }
 
-// Jira Ticket: QTS-9
-// Create tasks list
-// path: /api/taskLists
+// Jira Ticket: QTS-15
+// Create team
+// path: /api/teamLists
 // method: POST
 // request schema
 // {
-//    name: string; // task list name
+//    name: string; // team list name
 //    username: string
 // }
 // return schema
@@ -119,7 +119,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const formData = TaskListSchema.safeParse(data);
+    const formData = TeamListSchema.safeParse(data);
     if (!formData.success) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
@@ -154,13 +154,13 @@ export async function POST(request: Request) {
   }
 }
 
-// Jira Ticket: QTS-11
-// Create tasks list
-// path: /api/taskLists?id=${id}
+// Jira Ticket: QTS-16
+// Create team
+// path: /api/teamLists?id=${id}
 // method: PUT
 // request schema
 // {
-//    name: string; // task list name
+//    name: string; // team name
 //    username: string;
 // }
 // return schema
@@ -182,7 +182,7 @@ export async function PUT(request: Request) {
       );
     }
     const data = await request.json();
-    const formData = TaskListSchema.safeParse(data);
+    const formData = TeamListSchema.safeParse(data);
     if (!formData.success) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
@@ -213,9 +213,9 @@ export async function PUT(request: Request) {
   }
 }
 
-// Jira Ticket: QTS-10
-// Delete tasks list
-// path: /api/taskLists?id=${id}&username=${username}
+// Jira Ticket: QTS-18
+// Delete team list
+// path: /api/teamLists?id=${id}&username=${username}
 // method: DELETE
 // return schema
 // {

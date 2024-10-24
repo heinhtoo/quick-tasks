@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Icons } from "../ui/icons";
 import { useUserStore } from "../stores/user-store";
-import { TaskListSchema } from "@/schema/TaskSchema";
+import { TeamListSchema } from "@/schema/TaskSchema";
 
 interface TodoTeamFormProps extends React.HTMLAttributes<HTMLDivElement> {
   submitFn: () => void;
@@ -35,15 +35,15 @@ export function TodoTeamForm({
   const [isLoading, startTransition] = useTransition();
   const [username] = useUserStore((state) => [state.username]);
 
-  const form = useForm<z.infer<typeof TaskListSchema>>({
-    resolver: zodResolver(TaskListSchema),
+  const form = useForm<z.infer<typeof TeamListSchema>>({
+    resolver: zodResolver(TeamListSchema),
     defaultValues: {
       name: "",
       username,
     },
   });
 
-  async function onSubmit(data: z.infer<typeof TaskListSchema>) {
+  async function onSubmit(data: z.infer<typeof TeamListSchema>) {
     startTransition(async () => {
       try {
         fetch("/api/teamLists", {
