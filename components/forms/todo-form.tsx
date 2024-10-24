@@ -214,11 +214,20 @@ export function TodoForm({
                   )}
                 />
               </div>
-              <PrioritySelect
-                value={form.watch("priority")}
-                setValue={(value) => {
-                  form.setValue("priority", value);
-                }}
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col gap-0.5">
+                    <PrioritySelect
+                      value={field.value}
+                      setValue={(value) => {
+                        field.onChange(value);
+                      }}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
             <FormField
