@@ -1,20 +1,28 @@
+/**
+ * Author: Hein Htoo
+ * Created Date: 2024-10-24
+ * Jira Ticket: QTS-15
+ *
+ * Purpose:
+ *   Team create component
+ *
+ */
 "use client";
 import { CommandIcon, Plus } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Button, buttonVariants } from "../ui/button";
+import { buttonVariants } from "../ui/button";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
+import { TodoTeamForm } from "./todo-team-form";
 
-function TodoTeamCreate() {
+function TodoTeamCreate({ refetch }: { refetch: () => void }) {
   const [isOpen, setOpen] = useState(false);
 
   useEffect(() => {
@@ -55,7 +63,7 @@ function TodoTeamCreate() {
           </div>
         </div>
       </DrawerTrigger>
-      <DrawerContent>
+      <DrawerContent className="mx-auto max-w-screen-sm">
         <DrawerHeader>
           <DrawerTitle>Create new team</DrawerTitle>
           <DrawerDescription>
@@ -63,12 +71,14 @@ function TodoTeamCreate() {
             project completion.
           </DrawerDescription>
         </DrawerHeader>
-        <DrawerFooter>
-          <Button>Submit</Button>
-          <DrawerClose>
-            <Button variant="outline">Cancel</Button>
-          </DrawerClose>
-        </DrawerFooter>
+        <div className="p-5">
+          <TodoTeamForm
+            submitFn={() => {
+              setOpen(false);
+              refetch();
+            }}
+          />
+        </div>
       </DrawerContent>
     </Drawer>
   );

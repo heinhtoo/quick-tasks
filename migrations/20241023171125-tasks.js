@@ -45,6 +45,7 @@ exports.up = function (db) {
           isComplete: { type: "boolean", defaultValue: false },
           createdByUserId: { type: "int" },
           taskListId: { type: "int" },
+          teamId: { type: "int" },
           created_at: {
             type: "timestamp",
             defaultValue: new String("CURRENT_TIMESTAMP"),
@@ -73,6 +74,7 @@ exports.up = function (db) {
             defaultValue: new String("CURRENT_TIMESTAMP"),
             onUpdate: "CURRENT_TIMESTAMP",
           },
+          createdByUserId: { type: "int" },
         },
         { ifNotExists: true }
       );
@@ -98,11 +100,38 @@ exports.up = function (db) {
     })
     .then(() => {
       return db.addForeignKey(
+        "TaskLists",
+        "Users",
+        "fk_task_lists_createdByUserId",
+        { createdByUserId: "id" },
+        { onDelete: "CASCADE" }
+      );
+    })
+    .then(() => {
+      return db.addForeignKey(
+        "Tasks",
+        "Teams",
+        "fk_tasks_teamId",
+        { teamId: "id" },
+        { onDelete: "CASCADE" }
+      );
+    })
+    .then(() => {
+      return db.addForeignKey(
+        "Teams",
+        "Users",
+        "fk_teams_createdByUserId",
+        { createdByUserId: "id" },
+        { onDelete: "CASCADE" }
+      );
+    })
+    .then(() => {
+      return db.addForeignKey(
         "Tasks",
         "TaskLists",
         "fk_tasks_taskListId",
         { taskListId: "id" },
-        { onDelete: "SET NULL" }
+        { onDelete: "CASCADE" }
       );
     })
     .then(() => {

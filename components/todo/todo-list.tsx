@@ -1,3 +1,12 @@
+/**
+ * Author: Hein Htoo
+ * Created Date: 2024-10-24
+ * Jira Ticket: QTS-9
+ *
+ * Purpose:
+ *   Todo List
+ *
+ */
 "use client";
 import React from "react";
 import { useNavStore } from "../stores/nav-store";
@@ -9,6 +18,7 @@ import { Skeleton } from "../ui/skeleton";
 import { TeamList } from "@/types/teamList";
 import TodoListCreate from "./todo-list-create";
 import TodoTeamCreate from "./todo-team-create";
+import { useUserStore } from "../stores/user-store";
 
 function TodoError({ message }: { message: string }) {
   return (
@@ -20,9 +30,11 @@ function TodoError({ message }: { message: string }) {
 }
 
 function TodoListItem({
+  id,
   name,
   noOfIncompletedTasks,
 }: {
+  id: number;
   name: string;
   noOfIncompletedTasks: number;
 }) {
@@ -32,7 +44,7 @@ function TodoListItem({
       href={{
         pathname: "/",
         query: {
-          link: name,
+          link: id,
         },
       }}
     >
@@ -93,12 +105,23 @@ function TodoTeamItem({
 }
 
 function TodoList() {
+  const [username, setUsername] = useUserStore((state) => [
+    state.username,
+    state.setUsername,
+  ]);
+
   const {
     data: taskLists,
     error: listError,
     isLoading: taskLoading,
-  } = useQuery<TaskList[]>("taskLists", () => {
-    return fetch("/api/taskLists").then((res) => {
+    refetch: taskListRefetch,
+  } = useQuery<TaskList[]>(["taskLists", username], () => {
+    return fetch(
+      "/api/taskLists?username=" + encodeURIComponent(username)
+    ).then((res) => {
+      if (res.status === 401) {
+        setUsername("");
+      }
       if (!res.ok) {
         throw new Error("Network response was not ok");
       }
@@ -106,12 +129,19 @@ function TodoList() {
       return json;
     });
   });
+
   const {
     data: teamLists,
     error: teamError,
     isLoading: teamLoading,
-  } = useQuery<TeamList[]>("teamLists", () => {
-    return fetch("/api/teamLists").then(async (res) => {
+    refetch: teamRefetch,
+  } = useQuery<TeamList[]>(["teamLists", username], () => {
+    return fetch(
+      "/api/teamLists?username=" + encodeURIComponent(username)
+    ).then(async (res) => {
+      if (res.status === 401) {
+        setUsername("");
+      }
       if (!res.ok) {
         const errorResponse = await res.json();
         throw new Error(
@@ -140,7 +170,11 @@ function TodoList() {
               <TodoListItem {...item} key={item.name} />
             ))}
           </div>
-          <TodoListCreate />
+          <TodoListCreate
+            refetch={() => {
+              taskListRefetch();
+            }}
+          />
         </>
       ) : taskLoading ? (
         <div className="flex flex-col space-y-3">
@@ -161,7 +195,11 @@ function TodoList() {
               <TodoTeamItem {...item} key={item.name} />
             ))}
           </div>
-          <TodoTeamCreate />
+          <TodoTeamCreate
+            refetch={() => {
+              teamRefetch();
+            }}
+          />
         </>
       ) : teamLoading ? (
         <div className="flex flex-col space-y-3">

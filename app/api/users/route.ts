@@ -9,12 +9,12 @@ export async function GET() {
   try {
     const value = await redisClient.get(cacheKey);
     if (value) {
-      return NextResponse.json(value);
+      return NextResponse.json(JSON.parse(value));
     } else {
       const connection = await createConnection();
       const query = "SELECT * FROM Users";
       const [tasks] = await connection.query(query);
-      await connection.end();
+
       return NextResponse.json(tasks);
     }
   } catch (err) {
@@ -34,9 +34,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
     const connection = await createConnection();
-    const query = "INSERT INTO Users (username) VALUES (?)";
+
+    const query = "INSERT IGNORE INTO Users (username) VALUES (?)";
     await connection.execute(query, [formData.data.username]);
-    await connection.end();
 
     return NextResponse.json({ message: "Created" }, { status: 201 });
   } catch (err) {

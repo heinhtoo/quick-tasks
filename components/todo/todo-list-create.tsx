@@ -1,20 +1,28 @@
+/**
+ * Author: Hein Htoo
+ * Created Date: 2024-10-24
+ * Jira Ticket: QTS-9
+ *
+ * Purpose:
+ *   Todo list create component
+ *
+ */
 "use client";
 import { CommandIcon, Plus } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Button, buttonVariants } from "../ui/button";
+import { buttonVariants } from "../ui/button";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
+import { TodoListForm } from "./todo-list-form";
 
-function TodoListCreate() {
+function TodoListCreate({ refetch }: { refetch: () => void }) {
   const [isOpen, setOpen] = useState(false);
 
   useEffect(() => {
@@ -53,17 +61,21 @@ function TodoListCreate() {
           </div>
         </div>
       </DrawerTrigger>
-      <DrawerContent>
+      <DrawerContent className="mx-auto max-w-screen-sm">
         <DrawerHeader>
-          <DrawerTitle>Are you absolutely sure?</DrawerTitle>
-          <DrawerDescription>This action cannot be undone.</DrawerDescription>
+          <DrawerTitle>Create new list</DrawerTitle>
+          <DrawerDescription>
+            To make all tasks more organized.
+          </DrawerDescription>
         </DrawerHeader>
-        <DrawerFooter>
-          <Button>Submit</Button>
-          <DrawerClose>
-            <Button variant="outline">Cancel</Button>
-          </DrawerClose>
-        </DrawerFooter>
+        <div className="p-5">
+          <TodoListForm
+            submitFn={() => {
+              setOpen(false);
+              refetch();
+            }}
+          />
+        </div>
       </DrawerContent>
     </Drawer>
   );
