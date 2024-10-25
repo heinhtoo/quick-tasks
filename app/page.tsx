@@ -54,7 +54,7 @@ export default function Home({
     }
   }, [refetchUsername, username]);
 
-  if (isLoading) {
+  if (isLoading && !username) {
     return (
       <div className="flex flex-row items-center justify-center h-screen">
         <div className="loader" />

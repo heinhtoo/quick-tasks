@@ -9,10 +9,14 @@
  */
 import { getCurrentUserId } from "@/lib/databaseHelper";
 import { createConnection } from "@/lib/mysqldb";
+import redisClient from "@/lib/redis";
+import { deleteCache, getCache } from "@/lib/redisHelper";
 import { TeamListSchema } from "@/schema/TaskSchema";
 import { TeamList } from "@/types/teamList";
 import { RowDataPacket } from "mysql2";
 import { NextResponse } from "next/server";
+
+const cacheMainKey = "teamLists";
 
 // Get team lists data
 // path: /api/teamLists?username=${username}
@@ -42,6 +46,11 @@ export async function GET(request: Request) {
     });
     if (!currentUserId) {
       return NextResponse.json({ error: "Invalid user" }, { status: 401 });
+    }
+    const cacheKey = `${cacheMainKey}:${currentUserId}`;
+    const data = await getCache(cacheKey);
+    if (data) {
+      return Response.json(data);
     }
 
     const query = `SELECT 
@@ -97,6 +106,8 @@ export async function GET(request: Request) {
       }
     });
 
+    await redisClient.set(cacheKey, JSON.stringify(teams));
+
     return NextResponse.json(teams);
   } catch (err) {
     console.log(err);
@@ -151,6 +162,8 @@ export async function POST(request: Request) {
     const teamMember = "INSERT INTO TeamMembers (teamId, userId) VALUES (?, ?)";
     await connection.execute(teamMember, [teamId, currentUserId]);
 
+    await deleteCache(cacheMainKey, currentUserId.toString());
+
     return NextResponse.json({ message: "Created" }, { status: 201 });
   } catch (err) {
     console.log(err);
@@ -204,6 +217,8 @@ export async function PUT(request: Request) {
       currentUserId,
     ]);
 
+    await deleteCache(cacheMainKey, currentUserId.toString());
+
     return NextResponse.json({ message: "Updated" }, { status: 200 });
   } catch (err) {
     console.log(err);
@@ -253,6 +268,8 @@ export async function DELETE(request: Request) {
 
     const query = "DELETE FROM Teams WHERE id=? AND createdByUserId=?";
     await connection.execute(query, [searchParams.get("id"), currentUserId]);
+
+    await deleteCache(cacheMainKey, currentUserId.toString());
 
     return NextResponse.json({ message: "DELETED" }, { status: 200 });
   } catch (err) {

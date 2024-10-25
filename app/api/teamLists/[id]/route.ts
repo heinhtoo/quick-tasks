@@ -1,11 +1,14 @@
 import { getCurrentUserId } from "@/lib/databaseHelper";
 import { createConnection } from "@/lib/mysqldb";
+import { deleteCache } from "@/lib/redisHelper";
 import { TeamMemberSchema } from "@/schema/TaskSchema";
 import { NextResponse } from "next/server";
 
 type Params = {
   params: { id: string };
 };
+
+const cacheMainKey = "teamLists";
 
 export async function PUT(request: Request, { params }: Params) {
   const id = params.id;
@@ -36,6 +39,7 @@ export async function PUT(request: Request, { params }: Params) {
         "INSERT IGNORE INTO TeamMembers (teamId, userId) VALUES (?, ?)";
       await connection.execute(query, [id, formData.data.memberIds[i]]);
     }
+    await deleteCache(cacheMainKey, currentUserId.toString());
 
     return NextResponse.json({ message: "Updated" }, { status: 200 });
   } catch (err) {

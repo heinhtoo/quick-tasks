@@ -9,10 +9,14 @@
  */
 import { getCurrentUserId } from "@/lib/databaseHelper";
 import { createConnection } from "@/lib/mysqldb";
+import redisClient from "@/lib/redis";
+import { deleteCache, getCache } from "@/lib/redisHelper";
 import { TaskListSchema } from "@/schema/TaskSchema";
 import { RowDataPacket } from "mysql2";
 
 import { NextResponse } from "next/server";
+
+const cacheMainKey = "taskLists";
 
 // Get tasks lists data
 // path: /api/taskLists?username=${username}
@@ -26,8 +30,6 @@ import { NextResponse } from "next/server";
 // if username is not exists in database, return 401 error.
 
 export async function GET(request: Request) {
-  const connection = await createConnection();
-
   try {
     const url = new URL(request.url);
     const searchParams = new URLSearchParams(url.searchParams);
@@ -43,7 +45,12 @@ export async function GET(request: Request) {
     if (!currentUserId) {
       return NextResponse.json({ error: "Invalid user" }, { status: 401 });
     }
-    const query = `SELECT 
+    const cacheKey = `${cacheMainKey}:${currentUserId}`;
+    const data = await getCache(cacheKey);
+    if (data) {
+      return NextResponse.json(data);
+    } else {
+      const query = `SELECT 
           tl.id AS id,
           tl.name AS name,
           COUNT(t.id) AS noOfIncompletedTasks
@@ -57,12 +64,15 @@ export async function GET(request: Request) {
             tl.id, tl.name
           ORDER BY 
             tl.created_at DESC;`;
+      const connection = await createConnection();
 
-    const [tasks] = await connection.execute<RowDataPacket[]>(query, [
-      currentUserId,
-    ]);
+      const [tasks] = await connection.execute<RowDataPacket[]>(query, [
+        currentUserId,
+      ]);
+      await redisClient.set(cacheKey, JSON.stringify(tasks));
 
-    return NextResponse.json(tasks);
+      return NextResponse.json(tasks);
+    }
   } catch (err) {
     console.log(err);
     return NextResponse.json(
@@ -106,6 +116,7 @@ export async function POST(request: Request) {
 
     const query = "INSERT INTO TaskLists (name, createdByUserId) VALUES (?, ?)";
     await connection.execute(query, [formData.data.name, currentUserId]);
+    await deleteCache(cacheMainKey, currentUserId.toString());
 
     return NextResponse.json({ message: "Created" }, { status: 201 });
   } catch (err) {
@@ -160,6 +171,7 @@ export async function PUT(request: Request) {
       searchParams.get("id"),
       currentUserId,
     ]);
+    await deleteCache(cacheMainKey, currentUserId.toString());
 
     return NextResponse.json({ message: "Updated" }, { status: 200 });
   } catch (err) {
@@ -210,6 +222,7 @@ export async function DELETE(request: Request) {
 
     const query = "DELETE FROM TaskLists WHERE id=? AND createdByUserId=?";
     await connection.execute(query, [searchParams.get("id"), currentUserId]);
+    await deleteCache(cacheMainKey, currentUserId.toString());
 
     return NextResponse.json({ message: "DELETED" }, { status: 200 });
   } catch (err) {

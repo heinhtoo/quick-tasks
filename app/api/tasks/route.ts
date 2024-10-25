@@ -5,8 +5,6 @@ import { RowDataPacket } from "mysql2";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  const connection = await createConnection();
-
   try {
     const url = new URL(request.url);
     const searchParams = new URLSearchParams(url.searchParams);
@@ -24,6 +22,8 @@ export async function GET(request: Request) {
     }
     const team = searchParams.get("team");
     const list = searchParams.get("list");
+
+    const connection = await createConnection();
 
     let query = `SELECT 
         Tasks.id, 
@@ -88,11 +88,11 @@ export async function GET(request: Request) {
         : [currentUserId, currentUserId]
     );
 
-    return NextResponse.json(
-      rows.map((item) => {
-        return { ...item, isComplete: item.isComplete !== 0 };
-      })
-    );
+    const mapData = rows.map((item) => {
+      return { ...item, isComplete: item.isComplete !== 0 };
+    });
+
+    return NextResponse.json(mapData);
   } catch (err) {
     console.log(err);
     return NextResponse.json(
@@ -162,6 +162,7 @@ export async function PUT(request: Request) {
     if (!currentUserId) {
       return NextResponse.json({ error: "Invalid user" }, { status: 401 });
     }
+
     const data = await request.json();
     const formData = TaskOrderSchema.safeParse(data);
     if (!formData.success) {
